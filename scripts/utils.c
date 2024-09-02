@@ -9,14 +9,13 @@ int isRestOfLineEmpty(char *line) {
 	int idx = 0;
 	int LEN = nonNullTerminatedLength(s_check);
 	while (isspace(*s_check++) && *s_check);
-	if (*s_check != '\0') {
-		s_check[LEN] = '\0';
-		s_check = line;
+	if (*s_check) {
 		return 0;
 	}
 	else
+	s_check++;
 	*s_check = '\0';
-	s_check = line;
+	s_check =line; /*resets the string */
 	return 1;
 
 }
@@ -134,8 +133,8 @@ char *strstrip(char *s) {
 	end = s + LEN - 1;
 	while (end >= s && isspace(*end))
 		end--;
-	*(end + 1) = '\n';
-	*(end + 2) = '\0';
+	*(end + 1) ='\0';
+
 	while (*s && isspace(*s))
 		s++;
 
@@ -280,4 +279,16 @@ char *exchangeExtension(const char *filename, const char *old_ext, const char *n
 	}
 
 	return new_filename;
+}
+
+
+int check_string_bounds(const char *str, size_t length) {
+	size_t i ;
+	for ( i = 0; i < length; i++) {
+		if (!isprint(str[i])) {
+			fprintf(stderr, "Out of bounds character found at position %zu: %c\n", i, str[i]);
+			return 1;
+		}
+	}
+	return 0;
 }

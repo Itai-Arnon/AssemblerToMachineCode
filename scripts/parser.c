@@ -39,16 +39,16 @@ sep_commas_t seperator_c;
 
 
 void parse(symbol_table_t *sym_tbl, word_table_t *wordTable, word_table_t *dataTable, char *filename) {
-	char *buffer = calloc(LINE_LENGTH, sizeof(char));/*sentence analyzed*/
+	char *buffer = calloc(SET_BUFFER_LENGTH, sizeof(char));/*sentence analyzed*/
 	char *orig_buffer = buffer;/*meast to restet the buffer*/
 	char *cmd = calloc(MAX_SYMBOL_NAME, sizeof(char));/*cmd parse*/
 	char *cmd_extra = calloc(MAX_SYMBOL_NAME, sizeof(char)); /* 2nd cmd parse*/
 	char *directive_str1 = NULL;/*auxiliary var*/
-	char *directive_str2 =calloc(12, sizeof(char));/*auxiliary var*/
+	char *directive_str2 = calloc(12, sizeof(char));/*auxiliary var*/
 	char *sArr = calloc(MAX_SYMBOL_NAME, sizeof(char));/*.string array*/
 	int *pos = calloc(1, sizeof(int));/*promotes the buffer*/
 	symbol_table_t *externTable = NULL;/*auxiliary var*/
-	int idx, numCount, scanned, result, buff_len, isSymbol ,LEN; /*auxiliary vars*/
+	int idx, numCount, scanned, result, buff_len, isSymbol, LEN; /*auxiliary vars*/
 	idx = numCount = scanned = result = isSymbol = buff_len = LEN = 0;
 	rewind(fptr_after);
 	line_count = 0;
@@ -74,7 +74,7 @@ void parse(symbol_table_t *sym_tbl, word_table_t *wordTable, word_table_t *dataT
 			return;
 		}
 
-		if(isRestOfLineEmpty(buffer)) continue;
+		if (isRestOfLineEmpty(buffer)) continue;
 
 		if (buffer[0] == '\0') continue;
 
@@ -97,7 +97,7 @@ void parse(symbol_table_t *sym_tbl, word_table_t *wordTable, word_table_t *dataT
 						report_error(WAR_EXTERN_ENTRY_SYMBOL, line_count, PARS, NON_CRIT, 0);
 					}
 					if (scanned > 0)
-						buffer = buffer + *pos;
+						buffer = advance_buffer_if_possible(buffer, cmd_extra);
 					else
 						report_error(ERR_DIRECTIVE_RECOGNITION, line_count, PARS, CRIT, 0);
 					/*end of case 1 & 2*/
@@ -112,8 +112,8 @@ void parse(symbol_table_t *sym_tbl, word_table_t *wordTable, word_table_t *dataT
 
 		result = scanned = 0;
 		buffer = strstrip(buffer);
-		memset(cmd, '\0', sizeof(cmd));
-		memset(cmd_extra, '\0', sizeof(cmd_extra));
+		memset(cmd, '\0', MAX_SYMBOL_NAME * sizeof(char));
+		memset(cmd_extra, '\0', MAX_SYMBOL_NAME * sizeof(char));
 		switch (parser.line_type) {
 			case OP_CODE:
 				/*seperates the registers across an array of strings*/
@@ -166,10 +166,10 @@ void parse(symbol_table_t *sym_tbl, word_table_t *wordTable, word_table_t *dataT
 					parser.directive.operand.data = (int *) calloc(parser.directive.operand.data_len, sizeof(int));
 					/*assigns the numbers to the parser*/
 					for (idx = 0; idx < seperator_c.counter; idx++) {
-						directive_str1 =  (seperator_c.cString[idx]);
-						LEN  = strlen(directive_str1);
-						if(directive_str1[LEN-1] == '\n') LEN--;
-						sscanf(directive_str2 , "%d", directive_str1);
+						directive_str1 = (seperator_c.cString[idx]);
+						LEN = strlen(directive_str1);
+						if (directive_str1[LEN - 1] == '\n') LEN--;
+						sscanf(directive_str1, "%s", directive_str2);
 						*pos = convertOrCheckStringToNum(directive_str2, 0);
 						/*checking bounds of values*/
 						if (*pos < MIN_15Bit_NUM || *pos > MAX_15Bit_NUM)
@@ -198,8 +198,8 @@ void parse(symbol_table_t *sym_tbl, word_table_t *wordTable, word_table_t *dataT
 						if (isRestOfLineEmpty(buffer) == 0)
 							report_error(ERR_OP_CODE_FAILED_STRUCTURE, line_count, PARS, CRIT, 0);
 
-						if (result == ENTRY ) {
-						  if( isDuplicateSymbol(sym_tbl,cmd)  == 0)
+						if (result == ENTRY) {
+							if (isDuplicateSymbol(sym_tbl, cmd) == 0)
 								loadSymbolTable(sym_tbl, cmd, 0, _ENTRY);
 
 						} else if (result == EXTERN)
@@ -231,7 +231,6 @@ void parse(symbol_table_t *sym_tbl, word_table_t *wordTable, word_table_t *dataT
 		first_pass(sym_tbl, externTable, wordTable, dataTable, filename);
 	}
 	free(cmd);
-	free(cmd_extra);
 	free(directive_str2);
 	free(sArr);
 	free(pos);
@@ -309,20 +308,25 @@ type_of_register_t classifyRegisters(char *str, int first_or_second_operand) {
 		}
 	}
 		/* Check if the string starts with 'r' */
-	else if (strncmp(str, "r", 1) == 0) {
-		if (str[0] == 'r' && isdigit(str[1]) && str[1] >= '0' && str[1] <= '7')
-			parser.operands[first_or_second_operand].operand.registry = str[1] - '0';
-		return _REGULAR; /*Number 4*/
-	}
-		/* Default case for other characters */
+	else if (strncmp(str, "r", 1) == 0)
+		switch (str[0] == 'r' && isdigit(str[1]) && (str[1]) >= '0' && (str[1]) <= '7') {
+			case 0:
+				report_error(ERR_REGISTRY_ILLEGAL, line_count, PARS, CRIT, 0);
+				return _ERROR;
+			case 1:
+				parser.operands[first_or_second_operand].operand.registry = str[1] - '0';
+				return _REGULAR; /*Number 4*/
+		}
+	else if (/* Default case for other characters */
+			checkLegalName(str, ALPHANUM_COMBINED)) {
 
-	else if (checkLegalName(str, ALPHANUM_COMBINED)) {
 		str = removeColon(str);
-		strcpy(parser.operands[first_or_second_operand].operand.symbol, str);
+		strcpy(parser
+				       .operands[first_or_second_operand].operand.symbol, str);
 		return _DIRECT; /*label*/   /*todo chk if label duplicate and add accordingly*/
 	}
 
-	return _ERROR;
+	return _ERROR; /*if nothing was found*/
 }
 
 /*return number of registers allowed, -1 means op_code number of registers is wrong*/

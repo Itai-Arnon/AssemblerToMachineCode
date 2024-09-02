@@ -50,7 +50,7 @@ void first_pass(symbol_table_t *sym_tbl, symbol_table_t *externTable, word_table
 	}
 
 
-	second_pass(sym_tbl, externTable, wordTable, dataTable, filename);
+	second_pass(sym_tbl, externTable, wordTable, dataTable, filename,0);
 }
 
 /*sets the instruction word and the send to othre func to set other words*/
@@ -62,7 +62,7 @@ void setOPCODE_INSTRUCTION(symbol_table_t *sym_tbl, word_table_t *table) {
 
 	if (symbol != NULL && symbol->address < 100) {
 		symbol->address = line1->line_num;
-		(symbol->type == _ENTRY) ? _ENTRY : _INSTRUCTION;
+		symbol->type = (symbol->type == _ENTRY) ? _ENTRY : _INSTRUCTION;
 		line1->symbol = symbol;
 	}
 	IC++;

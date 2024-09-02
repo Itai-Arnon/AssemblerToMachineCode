@@ -92,7 +92,6 @@ void read_preprocessor(macro_table_t *tbl, symbol_table_t *sym_tbl) {
 					if ((loadMacroTable(tbl, macro_name, buffer)) == 0)
 						report_error("MACRO TABLE FAILED TO LOAD", line_count, MAC, CRIT, 0);
 				}
-				printAllMacros(tbl);
 				break;
 			case LINE_OUTSIDE:
 				/*write to after file*/

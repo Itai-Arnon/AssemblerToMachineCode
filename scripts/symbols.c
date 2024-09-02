@@ -6,7 +6,6 @@
 #include "headers/global_vars.h"
 #include "headers/macro_list.h"
 #include "headers/shared.h"
-#include "headers/global_vars.h"
 #include "headers/utils.h"
 #include "headers/first_pass.h"
 #include "headers/assembler.h"

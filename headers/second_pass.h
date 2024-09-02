@@ -10,7 +10,7 @@
 #include "macro_list.h"
 
 /*main function| checks for symbol problems and other address*/
-void second_pass(symbol_table_t *, symbol_table_t *,word_table_t *, word_table_t *, char *);
+void second_pass(symbol_table_t *, symbol_table_t *,word_table_t *, word_table_t *, char * , int);
 
 
 
@@ -45,7 +45,7 @@ int countExternInTables(word_table_t *table);
 
 
 /*printing table in octal */
-void printTableToFile(word_table_t *wTable, word_table_t *dTable, char *filename);
+void printTableToFile(word_table_t *, word_table_t *, char * );
 
 /*prints the Externals and their IC and DC locations*/
 void printExternTable(word_table_t *table1, word_table_t *table2, char *filename);

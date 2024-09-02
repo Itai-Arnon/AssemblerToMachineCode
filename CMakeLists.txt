@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22.1)
 project(m14 C)
 
 set(CMAKE_C_STANDARD 90)

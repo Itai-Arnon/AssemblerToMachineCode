@@ -2,25 +2,28 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "headers\second_pass.h"
-#include "headers\macro.h"
-#include "headers\macro_list.h"
-#include "headers\shared.h"
-#include "headers\global_vars.h"
-#include "headers\utils.h"
-#include "headers\symbols.h"
-#include "headers\parser.h"
-#include "headers\first_pass.h"
-#include "headers\assembler.h"
+#include "headers/second_pass.h"
+#include "headers/macro.h"
+#include "headers/macro_list.h"
+#include "headers/shared.h"
+#include "headers/global_vars.h"
+#include "headers/utils.h"
+#include "headers/symbols.h"
+#include "headers/parser.h"
+#include "headers/first_pass.h"
+#include "headers/assembler.h"
+#include "headers/assembler.h"
 
+static int IC = 0; /*first address of the instruction table is preset in tabel init*/
+static int DC;
 
 void second_pass(symbol_table_t *sym_tbl, symbol_table_t *externTable, word_table_t *wordTable, word_table_t *dataTable,
-                 char *filename, int os) {
+                 char *filename) {
 	symbol_table_t *entryTable = NULL;
-	char  *obfile = NULL, *extFile = NULL, *entryFile = NULL;
-
-	int   _shift = 0;
-
+	char  *obfile, *extFile, *entryFile;
+	char file_orig[MAX_FILE_NAME];
+	int idx, result = 0, n = 0, _shift = 0;
+	int LEN = strlen(filename);
 	if (isError == 1) {
 		return;
 	}
@@ -28,24 +31,20 @@ void second_pass(symbol_table_t *sym_tbl, symbol_table_t *externTable, word_tabl
 
 	entryTable = init_symbol_table(entryTable);
 
+
+
+
+
 	if (parser.op == stop) {
 
-		switch(os) {
-			case 0:
-				obfile = exchangeExtension(filename, ".txt", "a.txt");
-				extFile = exchangeExtension(filename, ".txt", "b.txt");
-				entryFile = exchangeExtension(filename, ".txt", "c.txt");
-				printf("OUTPUT FILES %s\n %s\n %s\n", entryFile, extFile, obfile);
-				break;
-			case 1:
-				obfile = exchangeExtension(filename, ".am", ".ob");
-				extFile = exchangeExtension(filename, ".am", ".ext");
-				entryFile = exchangeExtension(filename, ".am", ".ent");
-				printf(" OUTPUT FILES %s\n %s\n %s\n", entryFile, extFile, obfile);
-				break;
-			default:
-				break;
-		}
+		obfile = exchangeExtension(filename,"txt","ob");
+		extFile = exchangeExtension(filename,"txt" ,"ext");
+		entryFile = exchangeExtension(filename,"txt","ent");
+
+
+	/*	obfile = exchangeExtension(filename, "txt", "ob.txt");
+		extFile = exchangeExtension(filename, "txt", "ext.txt");
+		entryFile = exchangeExtension(filename, "txt", "ent.txt");*/
 
 
 		printf("Stop Occured\n");
@@ -68,10 +67,14 @@ void second_pass(symbol_table_t *sym_tbl, symbol_table_t *externTable, word_tabl
 		/* check for symbols with undefined address*/
 		if (isError)
 			return;
-	/*	printTable(wordTable);
-		printTable(dataTable);*/
+		printTable(wordTable);
+		printTable(dataTable);
 		printTableToFile(wordTable , dataTable ,  obfile );
+
+
 		print_symbol_table(sym_tbl);
+
+
 		printEntryTable(entryTable, entryFile);
 
 
@@ -248,6 +251,32 @@ void addConstantToSymbols(symbol_table_t *sym_tbl, word_table_t *table, memory_t
 }
 
 
+/*print to file ps.ent or stdout  entry information - use a specific symbol table */
+void printBinary(unsigned short num) {
+	int i = 0;
+	int bits = sizeof(unsigned short) * 8; /* Number of bits in the unsigned short*/
+	for (i = bits - 1; i >= 0; i--) {
+		unsigned short mask = 1 << i;
+		printf("%d", (num & mask) ? 1 : 0);
+	}
+	printf("\n");
+}
+
+void printTable(word_table_t *table) {
+	int i;
+
+	if (table == NULL || table->size == 0) {
+		return;
+	}
+
+	for (i = 0; i < table->size; i++) {
+		printf("%05d\t", table->lines[i].line_num); /* Print line number with leading zeros */
+		printf("%05d\t", table->lines[i]._ARE); /* Print line number with leading zeros */
+		printBinary(table->lines[i].word);         /* Print word in binary */
+	}
+}
+
+
 /*assures all relocatables have and address*/
 void updateRelocatableLines(word_table_t *table) {
 	int i = 0;
@@ -287,34 +316,8 @@ int countExternInTables(word_table_t *table) {
 }
 
 
-
-void printBinary(unsigned short num) {
-	int i = 0;
-	int bits = sizeof(unsigned short) * 8; /* Number of bits in the unsigned short*/
-	for (i = bits - 1; i >= 0; i--) {
-		unsigned short mask = 1 << i;
-		printf("%d", (num & mask) ? 1 : 0);
-	}
-	printf("\n");
-}
-
-void printTable(word_table_t *table) {
-	int i;
-
-	if (table == NULL || table->size == 0) {
-		return;
-	}
-
-	for (i = 0; i < table->size; i++) {
-		printf("%05d\t", table->lines[i].line_num); /* Print line number with leading zeros */
-		printf("%05d\t", table->lines[i]._ARE); /* Print line number with leading zeros */
-		printBinary(table->lines[i].word);         /* Print word in binary */
-	}
-}
-
-/*print to file ps.ent or stdout  entry information - use a specific symbol table */
 void printEntryTable(symbol_table_t *table, char *filename) {
-	FILE *exPtr1 = NULL;
+	FILE *exPtr = NULL;
 	symbol_t *symbol;
 
 	if (table == NULL || filename[0] == '\0') {
@@ -325,22 +328,22 @@ void printEntryTable(symbol_table_t *table, char *filename) {
 		printf("Entry Symbol Table Is Empty\n");
 		return;
 	}
-	if (!(exPtr1 = fopen(filename, "w+"))) {
+	if (!(exPtr = fopen(filename, "w+"))) {
 		report_error(ERR_FILE_DESTINATION, line_count, SECOND, CRIT, 0);
 		return;
 	}
 
 	for (symbol = table->symbol_List; symbol != NULL; symbol = symbol->next_sym) {
 		printf("%s %04d\n", symbol->symbol_name, symbol->address);
-		fprintf(exPtr1, "%s %04d\n", symbol->symbol_name, symbol->address);
+		fprintf(exPtr, "%s %04d\n", symbol->symbol_name, symbol->address);
 	}
-	fclose(exPtr1);
+	fclose(exPtr);
 	return;
 }
 
 /*print to file ps.ext or stdout  extern information */
 void printExternTable(word_table_t *table1, word_table_t *table2, char *filename) {
-	FILE *exPtr2 = NULL;
+	FILE *exPtr = NULL;
 	line_t *line;
 	int i;
 
@@ -348,12 +351,7 @@ void printExternTable(word_table_t *table1, word_table_t *table2, char *filename
 		report_error("Extern Table Empty Tables are Invalid or File Invalid\n\n", line_count, SECOND, CRIT, 0);
 		return;
 	}
-	if(countExternInTables(table1) == 0  && countExternInTables(table2) == 0 ){
-		printf("NO Extern Found\n");
-		return;
-	}
-
-	if (!(exPtr2 = fopen(filename, "w+"))) {
+	if (!(exPtr = fopen(filename, "w+"))) {
 		report_error(ERR_FILE_DESTINATION, line_count, SECOND, CRIT, 0);
 		return;
 	}
@@ -362,7 +360,7 @@ void printExternTable(word_table_t *table1, word_table_t *table2, char *filename
 		for (i = 0; i < table1->size; i++) {
 			line = &table1->lines[i];
 			if (line->_ARE == E) {
-				fprintf(exPtr2, "%s  %4d\n", line->symbol->symbol_name, line->line_num);
+				fprintf(exPtr, "%s  %4d\n", line->symbol->symbol_name, line->line_num);
 			}
 		}
 	}
@@ -371,11 +369,11 @@ void printExternTable(word_table_t *table1, word_table_t *table2, char *filename
 		for (i = 0; i < table2->size; i++) {
 			line = &table2->lines[i];
 			if (line->_ARE == E) {
-				fprintf(exPtr2, "%s  %4d\n", line->symbol->symbol_name, line->line_num);
+				fprintf(exPtr, "%s  %4d\n", line->symbol->symbol_name, line->line_num);
 			}
 		}
 	}
-	fclose(exPtr2);
+	fclose(exPtr);
 	return;
 }
 
@@ -408,6 +406,7 @@ void printTableToFile(word_table_t *wTable, word_table_t *dTable, char *filename
 		return;
 	}
 	if (!(exPtr = fopen(filename, "w+"))) {
+		report_error(ERR_FILE_DESTINATION, line_count, SECOND, CRIT, 0);
 		return;
 	}
 
@@ -415,11 +414,13 @@ void printTableToFile(word_table_t *wTable, word_table_t *dTable, char *filename
 	fprintf(exPtr, "  %d  %d\n", wTable->size, dTable->size);/*the size of the table*/
 	for (i = 0; i < wTable->size; i++) {
 		num = convertToOctal(wTable->lines[i].word);
+		printf("%05d %05d\n", wTable->lines[i].line_num, num); /* Print line number with leading zeros */
 		fprintf(exPtr, "%05d %05d\n", wTable->lines[i].line_num, num); /* Print line number with leading zeros */
 
 	}
 	for (i = 0; i < dTable->size; i++) {
 		num = convertToOctal(dTable->lines[i].word);
+		printf("%05d %05d\n", dTable->lines[i].line_num, num);
 		fprintf(exPtr, "%05d %05d\n", dTable->lines[i].line_num, num);
 	}
 	printf("\n");

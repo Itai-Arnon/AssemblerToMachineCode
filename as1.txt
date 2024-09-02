@@ -1,12 +1,8 @@
-mov r1,r2
-mov r1,r2
-mov r1,r2
-MAC: mov r1,r2
-mov r1,r2
-.data 0, 7 , 8
-macr rock
-mov r1,r2
+macr boo
+mov r1 , r7
+.entry LABEL
 endmacr
-.entry MAC
-rock
+LABEL: .data 5
+.data 0, 7 , 8
+boo
 stop

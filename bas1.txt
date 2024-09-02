@@ -1,9 +1,5 @@
-mov r1,r2
-mov r1,r2
-mov r1,r2
-MAC: mov r1,r2
-mov r1,r2
+LABEL: .data 5
 .data 0, 7 , 8
-.entry MAC
-mov r1,r2
+mov r1 , r7
+.entry LABEL
 stop

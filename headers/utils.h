@@ -8,7 +8,6 @@
 #define RED_COLOR "\x1b[38;2;247;84;100m"
 
 
-
 #include "shared.h"
 
 
@@ -29,11 +28,10 @@ int findSeperator(char *str, char sep);
 int convertToOctal(int num);
 
 
-
 /* seperastor char array checks all given amount by __seperators__amont__ */
 int is_char_separator(char c, char separators[], int separators_amount);
 
-int extra_char_at_end( char line[], int loc);
+int extra_char_at_end(char line[], int loc);
 
 /*purposed to count non null terminated functions*/
 int nonNullTerminatedLength(char *arr);
@@ -43,7 +41,7 @@ int checkLegalName(char *str, check_legal_name type);
 
 char *removeColon(char *symbol_name);
 
-char* removeFrontalWhitespace(char *buffer);
+char *removeFrontalWhitespace(char *buffer);
 
 /*strips whitespace in both sides*/
 char *strstrip(char *s);
@@ -53,7 +51,7 @@ int countCommas(char *str);
 
 int convertOrCheckStringToNum(char *str, convert_func_t type);
 
-int countNumbersInString( char *str);
+int countNumbersInString(char *str);
 
 int isEmptyOrWhitespaceFromEnd(char *str);
 
@@ -62,9 +60,11 @@ int isEmptyOrWhitespaceFromEnd(char *str);
 #include <stdlib.h>
 
 char *exchangeExtension(const char *filename, const char *old_ext, const char *new_ext);
+
 char *exchangeExtensionNoMalloc(char *filename, const char *old_ext, const char *new_ext);
 
+int check_string_bounds(const char *str, size_t length);
 
-		int checkQuotes(char *str);
+int checkQuotes(char *str);
 
 #endif /* M14_UTILS_H*/

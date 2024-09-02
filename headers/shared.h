@@ -49,7 +49,7 @@
 #define ERR_NO_FILES "No Files Inserted"
 #define ERR_FILE_DESTINATION "Error with Destination file or files"
 #define ERR_FILE_SOURCE "Error with Source file or Destination File"
-#define ERR_FILE_GENERAL "Error with Source file or Destination File. If relevant we will now move to the next file"
+#define ERR_FILE_GENERAL "Error with Source file or Destination File. If in existence we will now move to the next file"
 
 /*macro related*/
 #define ERR_WRITING_MACRO  "Failed to write Macro"
@@ -80,7 +80,7 @@
 #define ERR_OP_CODE_RECOGNITION "OP CODE NOT RECOGNIZED"
 #define ERR_OP_CODE_FAILED_STRUCTURE "OP Code structure Unrecognized or Not Legal"
 #define ERR_OP_CODE_REGISTRY_ILLEGAL "One or both OP Code register isn't legal"
-#define ERR_REGISTRY_ILLEGAL "Failed to Recognize Registry"
+#define ERR_REGISTRY_ILLEGAL "Failed to Recognize Registry, might be a wrong value "
 
 #define ERR_LINE_UNRECOGNIZED "Line Not Recognized as OP_CODE or DIRECTIVE or Symbol Or Macro"
 /* directive related errors*/

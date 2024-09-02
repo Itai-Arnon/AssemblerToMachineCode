@@ -58,8 +58,9 @@ void manage_files(int _argc, char **_argv, macro_table_t *macro_tbl, symbol_tabl
 		read_preprocessor(macro_tbl, sym_tbl);
 		rewind(fptr_after);
 		parse(sym_tbl, wordTable, dataTable,_argv[idx]);
+		checkSymbolsUnique(macro_tbl,sym_tbl);
 		if (isError) {
-			report_error("ERR_FILE_GENERAL",line_count,AS,CRIT,0);
+			report_error(ERR_FILE_GENERAL,line_count,AS,NON_CRIT,0);
 			isError = 0;
 			continue;
 		}
